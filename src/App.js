@@ -16,10 +16,7 @@ const App = () => {
       <div>React cron generator: V {packageConf.version}</div>
       <div>
         <Cron
-          onChange={(e, text) => {
-            setValue(e);
-            console.log(e, text);
-          }}
+          onChange={(e, text) => setValue(e)}
           value={value}
           showResultText={true}
           showResultCron={true}
