@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import Cron from "./lib";
-//import { HEADER } from "./lib";
+import { HEADER } from "./lib";
 import packageConf from "../package.json";
 
-/*
+
 const cronOptions = {
   headers: [HEADER.DAILY, HEADER.WEEKLY, HEADER.MONTHLY],
 };
-*/
+
 
 const App = () => {
   const [value, setValue] = useState("* * * * * * *");
@@ -20,7 +20,7 @@ const App = () => {
           value={value}
           showResultText={true}
           showResultCron={true}
-          //options={cronOptions}
+          options={cronOptions}
         />
       </div>
     </div>

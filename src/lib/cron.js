@@ -30,8 +30,46 @@ const Cron = ({
     [values, currentTab]
   );
 
+  const setValue = useCallback(
+    (value) => {
+      let _value = value;
+      if (_value && _value.split(" ").length === 6) {
+        _value += " *";
+      }
+      if (!_value || _value.split(" ").length !== 7) {
+        _value = INITIAL_VALUES[HEADER_VALUES.DAILY];
+      } else {
+        _value = _value.replace(/,/g, "!").split(" ");
+      }
+      const tabName = getTabFromValue(_value, headers);
+      setCurrentTab(tabName);
+      setValues({
+        ...JSON.parse(JSON.stringify(INITIAL_VALUES)),
+        [tabName]: _value,
+      });
+    },
+    [headers, setCurrentTab, setValues]
+  );
+
+  useEffect(() => {
+    if (!id) return;
+    setValues(null);
+  }, [id, setValues]);
+
+  useEffect(() => {
+    if (translateFn && !locale) {
+      console.warn("Warning !!! locale not set while using translateFn");
+    }
+  }, [translateFn, locale]);
+
+  useEffect(() => {
+    // dont do setValue again when values is all set
+    if (values) return;
+    setValue(value ? value : defaultValue(headers[0]));
+  }, [value, values, headers, setValue]);
+
   const getVal = useCallback(() => {
-    let val = cronstrue.toString(
+    const val = cronstrue.toString(
       currentValue?.toString().replace(/,/g, " ").replace(/!/g, ","),
       { throwExceptionOnParseError: false, locale }
     );
@@ -56,27 +94,6 @@ const Cron = ({
     parentChange(val);
   };
 
-  const setValue = useCallback(
-    (value) => {
-      let _value = value;
-      if (_value && _value.split(" ").length === 6) {
-        _value += " *";
-      }
-      if (!_value || _value.split(" ").length !== 7) {
-        _value = INITIAL_VALUES[HEADER_VALUES.DAILY];
-      } else {
-        _value = _value.replace(/,/g, "!").split(" ");
-      }
-      const tabName = getTabFromValue(_value, headers);
-      setCurrentTab(tabName);
-      setValues({
-        ...JSON.parse(JSON.stringify(INITIAL_VALUES)),
-        [tabName]: _value,
-      });
-    },
-    [headers, setCurrentTab, setValues]
-  );
-
   const tabChanged = (event, tabIndex) => {
     const newTabName = headers[tabIndex];
     if (currentTab !== newTabName) {
@@ -84,9 +101,6 @@ const Cron = ({
       updateValues(newTabName, values[newTabName]);
     }
   };
-
-  const getHeaders = () =>
-    headers.map((d) => <Tab key={d} label={translate(d)} />);
 
   const onValueChange = (val) => {
     if (!(val && val.length)) {
@@ -96,7 +110,7 @@ const Cron = ({
   };
 
   const defaultValue = (tabName) => {
-    let defaultValCron = metadata[tabName];
+    const defaultValCron = metadata[tabName];
     if (!defaultValCron || !defaultValCron.initialCron) {
       return;
     }
@@ -106,7 +120,7 @@ const Cron = ({
   const getComponent = (tabName) => {
     if (!tabName || !values) return;
 
-    let selectedMetaData = metadata[tabName];
+    const selectedMetaData = metadata[tabName];
     if (!selectedMetaData) {
       throw new Error("Value does not match any available headers.");
     }
@@ -131,26 +145,9 @@ const Cron = ({
     return translatedText;
   };
 
-  useEffect(() => {
-    if (!id) return;
-    setValues(null);
-  }, [id, setValues]);
-
-  useEffect(() => {
-    if (translateFn && !locale) {
-      console.warn("Warning !!! locale not set while using translateFn");
-    }
-  }, [translateFn, locale]);
-
-  useEffect(() => {
-    // dont do setValue again when values is all set
-    if (values) return;
-    setValue(value ? value : defaultValue(headers[0]));
-  }, [value, values, headers, setValue]);
-
   return (
     <Box
-      sx={{ width: "100%", typography: "body1" }}
+      sx={{ width: "50%", typography: "body1" }}
       className={`cronContainer ${className}`}
     >
       <Tabs
@@ -158,7 +155,9 @@ const Cron = ({
         onChange={tabChanged}
         aria-label="Time Header"
       >
-        {getHeaders()}
+        {headers.map((d) => (
+          <Tab key={d} label={translate(d)} />
+        ))}
       </Tabs>
       <div className="cron_builder_bordering">
         {currentTab ? getComponent(currentTab) : "Select a header"}

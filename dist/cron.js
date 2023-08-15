@@ -38,6 +38,34 @@ var Cron = function Cron(_ref) {
   var currentValue = (0, _react.useMemo)(function () {
     return values ? values[currentTab] : null;
   }, [values, currentTab]);
+  var setValue = (0, _react.useCallback)(function (value) {
+    var _value = value;
+    if (_value && _value.split(" ").length === 6) {
+      _value += " *";
+    }
+    if (!_value || _value.split(" ").length !== 7) {
+      _value = _meta.INITIAL_VALUES[_meta.HEADER_VALUES.DAILY];
+    } else {
+      _value = _value.replace(/,/g, "!").split(" ");
+    }
+    var tabName = (0, _meta.getTabFromValue)(_value, headers);
+    setCurrentTab(tabName);
+    setValues((0, _objectSpread4.default)((0, _objectSpread4.default)({}, JSON.parse(JSON.stringify(_meta.INITIAL_VALUES))), {}, (0, _defineProperty2.default)({}, tabName, _value)));
+  }, [headers, setCurrentTab, setValues]);
+  (0, _react.useEffect)(function () {
+    if (!id) return;
+    setValues(null);
+  }, [id, setValues]);
+  (0, _react.useEffect)(function () {
+    if (translateFn && !locale) {
+      console.warn("Warning !!! locale not set while using translateFn");
+    }
+  }, [translateFn, locale]);
+  (0, _react.useEffect)(function () {
+    // dont do setValue again when values is all set
+    if (values) return;
+    setValue(value ? value : defaultValue(headers[0]));
+  }, [value, values, headers, setValue]);
   var getVal = (0, _react.useCallback)(function () {
     var val = _i18n.default.toString(currentValue === null || currentValue === void 0 ? void 0 : currentValue.toString().replace(/,/g, " ").replace(/!/g, ","), {
       throwExceptionOnParseError: false,
@@ -57,34 +85,12 @@ var Cron = function Cron(_ref) {
     });
     parentChange(val);
   };
-  var setValue = (0, _react.useCallback)(function (value) {
-    var _value = value;
-    if (_value && _value.split(" ").length === 6) {
-      _value += " *";
-    }
-    if (!_value || _value.split(" ").length !== 7) {
-      _value = _meta.INITIAL_VALUES[_meta.HEADER_VALUES.DAILY];
-    } else {
-      _value = _value.replace(/,/g, "!").split(" ");
-    }
-    var tabName = (0, _meta.getTabFromValue)(_value, headers);
-    setCurrentTab(tabName);
-    setValues((0, _objectSpread4.default)((0, _objectSpread4.default)({}, JSON.parse(JSON.stringify(_meta.INITIAL_VALUES))), {}, (0, _defineProperty2.default)({}, tabName, _value)));
-  }, [headers, setCurrentTab, setValues]);
   var tabChanged = function tabChanged(event, tabIndex) {
     var newTabName = headers[tabIndex];
     if (currentTab !== newTabName) {
       setCurrentTab(newTabName);
       updateValues(newTabName, values[newTabName]);
     }
-  };
-  var getHeaders = function getHeaders() {
-    return headers.map(function (d) {
-      return /*#__PURE__*/_react.default.createElement(_material.Tab, {
-        key: d,
-        label: translate(d)
-      });
-    });
   };
   var onValueChange = function onValueChange(val) {
     if (!(val && val.length)) {
@@ -122,23 +128,9 @@ var Cron = function Cron(_ref) {
     }
     return translatedText;
   };
-  (0, _react.useEffect)(function () {
-    if (!id) return;
-    setValues(null);
-  }, [id, setValues]);
-  (0, _react.useEffect)(function () {
-    if (translateFn && !locale) {
-      console.warn("Warning !!! locale not set while using translateFn");
-    }
-  }, [translateFn, locale]);
-  (0, _react.useEffect)(function () {
-    // dont do setValue again when values is all set
-    if (values) return;
-    setValue(value ? value : defaultValue(headers[0]));
-  }, [value, values, headers, setValue]);
   return /*#__PURE__*/_react.default.createElement(_material.Box, {
     sx: {
-      width: "100%",
+      width: "50%",
       typography: "body1"
     },
     className: "cronContainer ".concat(className)
@@ -146,7 +138,12 @@ var Cron = function Cron(_ref) {
     value: headers.indexOf(currentTab),
     onChange: tabChanged,
     "aria-label": "Time Header"
-  }, getHeaders()), /*#__PURE__*/_react.default.createElement("div", {
+  }, headers.map(function (d) {
+    return /*#__PURE__*/_react.default.createElement(_material.Tab, {
+      key: d,
+      label: translate(d)
+    });
+  })), /*#__PURE__*/_react.default.createElement("div", {
     className: "cron_builder_bordering"
   }, currentTab ? getComponent(currentTab) : "Select a header"), showResultText && /*#__PURE__*/_react.default.createElement("div", {
     className: "cron-builder-bg"
